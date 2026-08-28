@@ -25,13 +25,19 @@ jobs:
       - name: Build exe with PyInstaller
         run: |
           pyinstaller --onefile src/watcher.py --name ticket-watcher
+      - name: List working directory (for debugging)
+        run: |
+          echo "Workspace contents:" 
+          dir
+          echo "Dist contents:" 
+          dir dist || echo "dist not found"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ticket-watcher-exe
-          path: dist/ticket-watcher.exe
+          path: dist/*.exe
       - name: Create Release and attach exe
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ github.run_number }}
-          files: dist/ticket-watcher.exe
+          files: dist/*.exe
