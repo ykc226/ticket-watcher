@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ticket Watcher (PWA)</title>
+    <link rel="manifest" href="/pwa/manifest.json">
+    <style>
+      body{font-family:Arial,Helvetica,sans-serif;padding:12px}
+      label{display:block;margin-top:8px}
+      input,button{font-size:16px;padding:8px}
+    </style>
+  </head>
+  <body>
+    <h2>Ticket Watcher (PWA)</h2>
+    <p>This simple page polls a URL and looks for a keyword. If found it will alert you in the browser. To get installable app, use "Add to Home screen" in your mobile browser.</p>
+    <label>URL: <input id="url" size="40" placeholder="https://example.com/event"></label>
+    <label>Keyword (leave empty for JSON 'available'): <input id="keyword" size="20" placeholder="有票"></label>
+    <label>Interval (seconds): <input id="interval" size="6" value="60"></label>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <div id="status"></div>
+
+    <script>
+      let timer = null;
+      const status = document.getElementById('status');
+      function log(m){ status.textContent = new Date().toLocaleTimeString()+" - "+m; }
+      async function check(){
+        const url = document.getElementById('url').value;
+        const kw = document.getElementById('keyword').value;
+        try{
+          const r = await fetch(url, {cache:'no-store'});
+          const ct = r.headers.get('content-type')||'';
+          let text = await r.text();
+          if(ct.includes('application/json')){
+            try{ text = JSON.stringify(JSON.parse(text)); }catch(e){}
+          }
+          if(kw){ if(text.toLowerCase().includes(kw.toLowerCase())){ alert('可能有票: '+url); log('Found keyword'); stop(); return; } }
+          else{ if(text.includes('"available":true')||text.toLowerCase().includes('"available": true')){ alert('可能有票 (available=true) '+url); log('Found available flag'); stop(); return; } }
+          log('Checked — no match');
+        }catch(e){ log('Error: '+e); }
+      }
+      function start(){
+        if(timer) return;
+        const iv = parseInt(document.getElementById('interval').value)||60;
+        check();
+        timer = setInterval(check, iv*1000);
+        log('Started');
+      }
+      function stop(){ if(timer){ clearInterval(timer); timer=null; log('Stopped'); } }
+      document.getElementById('start').addEventListener('click', start);
+      document.getElementById('stop').addEventListener('click', stop);
+    </script>
+  </body>
+</html>

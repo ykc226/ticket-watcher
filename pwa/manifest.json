@@ -1,0 +1,9 @@
+{
+  "name": "Ticket Watcher",
+  "short_name": "Watcher",
+  "start_url": "/pwa/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "Monitor ticket availability and get notified",
+  "icons": []
+}
