@@ -1,4 +1,4 @@
-name: Build Windows exe
+name: Build Windows exe and Create Installer
 
 permissions:
   contents: write
@@ -25,18 +25,29 @@ jobs:
       - name: Build exe with PyInstaller
         run: |
           pyinstaller --onefile src/watcher.py --name ticket-watcher
-      - name: List working directory (for debugging)
+      - name: List workspace and dist (after pyinstaller)
         run: |
-          echo "Workspace contents:" 
+          echo "Workspace contents:"
           dir
-          echo "Dist contents:" 
+          echo "Dist contents:"
           dir dist || echo "dist not found"
-      - name: Upload artifact
+      - name: Install NSIS (for creating installer)
+        run: |
+          choco install nsis -y
+          refreshenv || true
+      - name: Build Windows installer with NSIS
+        run: |
+          "C:\Program Files (x86)\NSIS\makensis.exe" -V2 installer\installer.nsi
+      - name: List dist (after installer)
+        run: |
+          echo "Dist contents after installer:"
+          dir dist || echo "dist not found"
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ticket-watcher-exe
+          name: ticket-watcher-artifacts
           path: dist/*.exe
-      - name: Create Release and attach exe
+      - name: Create Release and attach artifacts
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ github.run_number }}
